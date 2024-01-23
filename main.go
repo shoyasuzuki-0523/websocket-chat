@@ -6,14 +6,27 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"gopkg.in/olahol/melody.v1"
+	"github.com/gorilla/websocket"
 )
+
+var clients = make(map[*websocket.Conn]bool)
+
+// メッセージブロードキャストチャネル
+var broadcast = make(chan Message)
+
+type Message struct {
+	Type    int
+	Message []byte
+}
 
 func main() {
 	log.Println("Websocket App start.")
 
 	router := gin.Default()
-	m := melody.New()
+	wsupgrader := websocket.Upgrader{
+		ReadBufferSize:  1024,
+		WriteBufferSize: 1024,
+	}
 
 	rg := router.Group("/sampleapp")
 	rg.GET("/", func(ctx *gin.Context) {
@@ -21,23 +34,37 @@ func main() {
 	})
 
 	rg.GET("/ws", func(ctx *gin.Context) {
-		m.HandleRequest(ctx.Writer, ctx.Request)
+		conn, err := wsupgrader.Upgrade(ctx.Writer, ctx.Request, nil)
+		if err != nil {
+			log.Printf("Failed to set websocket upgrade: %+v\n", err)
+			return
+		}
+		clients[conn] = true
+		for {
+			t, msg, err := conn.ReadMessage()
+			if err != nil {
+				break
+			}
+			broadcast <- Message{Type: t, Message: msg}
+		}
 	})
-
-	m.HandleMessage(func(s *melody.Session, msg []byte) {
-		log.Printf("Broadcast. [session: %#v]\n", s)
-		m.Broadcast(msg)
-	})
-
-	m.HandleConnect(func(s *melody.Session) {
-		log.Printf("websocket connection open. [session: %#v]\n", s)
-	})
-
-	m.HandleDisconnect(func(s *melody.Session) {
-		log.Printf("websocket connection close. [session: %#v]\n", s)
-	})
+	go handleMessages()
 
 	router.Run()
 
 	fmt.Println("Websocket App End.")
+}
+
+func handleMessages() {
+	for {
+		message := <-broadcast
+		for client := range clients {
+			err := client.WriteMessage(message.Type, message.Message)
+			if err != nil {
+				log.Printf("error: %v", err)
+				client.Close()
+				delete(clients, client)
+			}
+		}
+	}
 }

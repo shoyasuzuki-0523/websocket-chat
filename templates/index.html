@@ -38,6 +38,7 @@
       };
 
       ws.onmessage = function (msg) {
+        console.log(msg);
         var line =  now() + " : " + msg.data + "\n";
         chat.innerText += line;
       };
