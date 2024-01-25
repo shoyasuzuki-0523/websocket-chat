@@ -22,18 +22,17 @@ type Message struct {
 func main() {
 	log.Println("Websocket App start.")
 
-	router := gin.Default()
+	r := gin.Default()
 	wsupgrader := websocket.Upgrader{
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
 	}
 
-	rg := router.Group("/sampleapp")
-	rg.GET("/", func(ctx *gin.Context) {
+	r.GET("/", func(ctx *gin.Context) {
 		http.ServeFile(ctx.Writer, ctx.Request, "templates/index.html")
 	})
 
-	rg.GET("/ws", func(ctx *gin.Context) {
+	r.GET("/ws", func(ctx *gin.Context) {
 		conn, err := wsupgrader.Upgrade(ctx.Writer, ctx.Request, nil)
 		if err != nil {
 			log.Printf("Failed to set websocket upgrade: %+v\n", err)
@@ -50,7 +49,7 @@ func main() {
 	})
 	go handleMessages()
 
-	router.Run()
+	r.Run()
 
 	fmt.Println("Websocket App End.")
 }
