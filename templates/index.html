@@ -22,9 +22,7 @@
 
     <center>
       <h3>Sample Chat</h3>
-      <div id="chat">
-        <span id="message"></span>
-      </div>
+      <div id="chat"></div>
       <div hx-ext="ws" ws-connect="/ws" hx-trigger="keydown[keyCode==13]">
         <form ws-send>
           <label id="title">{{.name}}</label>
