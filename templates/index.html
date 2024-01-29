@@ -1,6 +1,8 @@
 <html>
   <head>
     <title>Chat powered by Melody</title>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script src="https://unpkg.com/htmx.org/dist/ext/ws.js"></script>
   </head>
 
   <style>
@@ -20,36 +22,14 @@
 
     <center>
       <h3>Sample Chat</h3>
-      <pre id="chat"></pre>
-      <label id="title"></label>
-      <input placeholder="say something" id="text" type="text">
+      <div id="chat">
+        <span id="message"></span>
+      </div>
+      <div hx-ext="ws" ws-connect="/ws" hx-trigger="keydown[keyCode==13]">
+        <form ws-send>
+          <label id="title">{{.name}}</label>
+          <input placeholder="say something" name="input" type="text">
+          <input name="user" type="hidden" value={{.name}}>
+        </form>
+      </div>
     </center>
-
-    <script>
-      var url = "ws://" + window.location.host + "/sampleapp/ws";
-      var ws = new WebSocket(url);
-      var name = "Guest-" + Math.floor(Math.random() * 1000);
-      var chat = document.getElementById("chat");
-      document.getElementById("title").innerText = name + ": ";
-      
-      var text = document.getElementById("text");
-      var now = function () {
-        return new Date().toLocaleString();
-      };
-
-      ws.onmessage = function (msg) {
-        console.log(msg);
-        var line =  now() + " : " + msg.data + "\n";
-        chat.innerText += line;
-      };
-
-      text.onkeydown = function (e) {
-        if (e.keyCode === 13 && text.value !== "") {
-          ws.send("[" + name + "] > " + text.value);
-          text.value = "";
-        }
-      };
-    </script>
-
-  </body>
-</html>
