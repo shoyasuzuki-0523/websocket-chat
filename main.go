@@ -23,13 +23,11 @@ type Message struct {
 
 type Request struct {
 	Header map[string]string `json:"HEADERS"`
-	Input  string            `json:"input"`
 	User   string            `json:"user"`
+	Input  string            `json:"input"`
 }
 
 func main() {
-	log.Println("Websocket App start.")
-
 	r := gin.Default()
 	r.LoadHTMLGlob("templates/*")
 	wsupgrader := websocket.Upgrader{
@@ -39,8 +37,14 @@ func main() {
 
 	r.GET("/", func(ctx *gin.Context) {
 		rand.New(rand.NewSource(time.Now().UnixNano()))
-		name := fmt.Sprintf("Guest-%03d", rand.Intn(100))
-		ctx.HTML(http.StatusOK, "index.html", gin.H{"name": name})
+
+		ctx.HTML(
+			http.StatusOK,
+			"index.html",
+			gin.H{
+				"name": fmt.Sprintf("Guest-%03d", rand.Intn(100)),
+			},
+		)
 	})
 
 	r.GET("/ws", func(ctx *gin.Context) {
@@ -63,15 +67,19 @@ func main() {
 				fmt.Println(err)
 			}
 
-			msg := fmt.Sprintf("<div hx-swap-oob=\"beforeend:#chat\"><span>%s[%s]> %s</span></br></div>", time.Now().Format("15:04:05"), req.User, req.Input)
+			msg := fmt.Sprintf(
+				"<div hx-swap-oob=\"beforeend:#chat\"><span>%s[%s]> %s</span></br></div>",
+				time.Now().Format("15:04:05"),
+				req.User,
+				req.Input,
+			)
+
 			broadcast <- Message{Type: t, User: req.User, Message: msg}
 		}
 	})
 	go handleMessages()
 
 	r.Run()
-
-	fmt.Println("Websocket App End.")
 }
 
 func handleMessages() {

@@ -1,7 +1,7 @@
 <html>
   <head>
-    <title>Chat powered by Melody</title>
-    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <title>Sample Chat</title>
+    <script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" crossorigin="anonymous"></script>
     <script src="https://unpkg.com/htmx.org/dist/ext/ws.js"></script>
   </head>
 
@@ -23,11 +23,12 @@
     <center>
       <h3>Sample Chat</h3>
       <div id="chat"></div>
-      <div hx-ext="ws" ws-connect="/ws" hx-trigger="keydown[keyCode==13]">
-        <form ws-send>
-          <label id="title">{{.name}}</label>
-          <input placeholder="say something" name="input" type="text">
-          <input name="user" type="hidden" value={{.name}}>
-        </form>
-      </div>
+      <form hx-ext="ws" ws-connect="/ws" id="form" ws-send>
+        <label id="title">{{.name}}</label>
+        <input name="user" type="hidden" value={{.name}}>
+        <input name="input" type="text" placeholder="say something">
+      </form>
     </center>
+
+  </body>
+</html>
